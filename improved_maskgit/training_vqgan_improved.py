@@ -107,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('--perceptual-loss-factor', type=float, default=1., help='Weighting factor for perceptual loss.')
 
     args = parser.parse_args()
-    args.dataset_path = r"/mnt/home/llu/projects/maskgit_improvement/improved_maskgit/alley"
+    args.dataset_path = r"/content/drive/MyDrive/alley"
 
     train_vqgan = TrainVQGAN_IMPROVED(args)
 
