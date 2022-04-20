@@ -10,58 +10,28 @@ from transformer import VQGANTransformer
 from utils import load_data, plot_images
 
 
-class TrainTransformer:
+class EvalTransformer:
     def __init__(self, args):
         self.model = VQGANTransformer(args).to(device=args.device)
-        self.optim = self.configure_optimizers()
+        self.model.load_checkpoint(args.trans_path)
+        self.model = self.model.eval()
+        self.eval_trans(args)
 
-        self.train(args)
-
-    def train(self, args):
+    def eval_trans(self, args):
         train_dataset = load_data(args)
+        icnt = 0
         for epoch in range(args.epochs):
             with tqdm(range(len(train_dataset))) as pbar:
                 for i, imgs in zip(pbar, train_dataset):
-                    self.optim.zero_grad()
+                    icnt = icnt + 1
                     imgs = imgs.to(device=args.device)
                     logits, target = self.model(imgs)
-                    loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), target.reshape(-1))
-                    loss.backward()
-                    self.optim.step()
-                    pbar.set_postfix(Transformer_Loss=np.round(loss.cpu().detach().numpy().item(), 4))
-                    pbar.update(0)
-            log, sampled_imgs = self.model.log_images(imgs[0][None])
-            vutils.save_image(sampled_imgs, os.path.join("results", f"{epoch}.jpg"), nrow=4)
-            plot_images(log)
-            torch.save(self.model.state_dict(), os.path.join("checkpoints", f"transformer_epoch_{epoch}.pt"))
+                    log, img_x, img_x_rec, img_x_sample, img_x_vqgan = self.model.log_images(imgs[0][None])
+                    vutils.save_image(img_x, os.path.join("result_fig/orig", f"{icnt}.jpg"), nrow=4)
+                    vutils.save_image(img_x_rec, os.path.join("result_fig/rec", f"{icnt}.jpg"), nrow=4)
+                    vutils.save_image(img_x_sample, os.path.join("result_fig/half", f"{icnt}.jpg"), nrow=4)
+                    vutils.save_image(img_x_vqgan, os.path.join("result_fig/vqgan", f"{icnt}.jpg"), nrow=4)
 
-    def configure_optimizers(self):
-        decay, no_decay = set(), set()
-        whitelist_weight_modules = (nn.Linear,)
-        blacklist_weight_modules = (nn.LayerNorm, nn.Embedding)
-        for mn, m in self.model.transformer.named_modules():
-            for pn, p in m.named_parameters():
-                fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
-
-                if pn.endswith('bias'):
-                    no_decay.add(fpn)
-
-                elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
-                    decay.add(fpn)
-
-                elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
-                    no_decay.add(fpn)
-
-        no_decay.add('pos_emb')
-
-        param_dict = {pn: p for pn, p in self.model.transformer.named_parameters()}
-
-        optim_groups = [
-            {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": 0.01},
-            {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
-        ]
-        optimizer = torch.optim.AdamW(optim_groups, lr=1e-4, betas=(0.9, 0.95))
-        return optimizer
 
 
 if __name__ == '__main__':
@@ -73,9 +43,10 @@ if __name__ == '__main__':
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images.')
     parser.add_argument('--dataset-path', type=str, default='/mnt/ceph/users/llu/maskgit_improvement/improved_maskgit/alley', help='Path to data.')
     parser.add_argument('--checkpoint-path', type=str, default='/mnt/ceph/users/llu/imaskgit_results/checkpoints/vqgan_epoch_49.pt', help='Path to checkpoint.')
+    parser.add_argument('--trans-path', type=str, default='/mnt/home/llu/ceph/maskgit_improvement/improved_maskgit/data_origin/checkpoints/transformer_epoch_49.pt', help='Path to trans checkpoint.')
     parser.add_argument('--device', type=str, default="cuda", help='Which device the training is on')
-    parser.add_argument('--batch-size', type=int, default=8, help='Input batch size for training.')
-    parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
+    parser.add_argument('--batch-size', type=int, default=1, help='Input batch size for training.')
+    parser.add_argument('--epochs', type=int, default=1, help='Number of epochs to train.')
     parser.add_argument('--learning-rate', type=float, default=2.25e-05, help='Learning rate.')
     parser.add_argument('--beta1', type=float, default=0.5, help='Adam beta param.')
     parser.add_argument('--beta2', type=float, default=0.9, help='Adam beta param.')
@@ -84,11 +55,9 @@ if __name__ == '__main__':
     parser.add_argument('--l2-loss-factor', type=float, default=1., help='Weighting factor for reconstruction loss.')
     parser.add_argument('--perceptual-loss-factor', type=float, default=1., help='Weighting factor for perceptual loss.')
 
-    #parser.add_argument('--pkeep', type=float, default=0.5, help='Percentage for how much latent codes to keep.')
-    #parser.add_argument('--sos-token', type=int, default=0, help='Start of Sentence token.')
-
     args = parser.parse_args()
     args.dataset_path = r"/mnt/ceph/users/llu/maskgit_improvement/improved_maskgit/alley"
     args.checkpoint_path = r"/mnt/ceph/users/llu/imaskgit_results/checkpoints/vqgan_epoch_49.pt"
+    args.trans_path = r"/mnt/home/llu/ceph/maskgit_improvement/improved_maskgit/data_origin/checkpoints/transformer_epoch_49.pt"
 
-    train_transformer = TrainTransformer(args)
+    eval_transformer = EvalTransformer(args)

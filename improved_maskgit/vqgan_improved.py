@@ -13,13 +13,19 @@ class VQGAN_IMPROVED(nn.Module):
         self.codebook = VectorQuantize(args.latent_dim, args.num_codebook_vectors, commitment_weight=args.beta).to(device=args.device)
         self.quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
         self.post_quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
+        self.latent_dim = args.latent_dim
+        self.num_codebook_vectors = args.num_codebook_vectors
 
     def forward(self, imgs):
         encoded_images = self.encoder(imgs)
         quantized_encoded_images = self.quant_conv(encoded_images)
+        #print("quantized_encode_images shape:", quantized_encoded_images.shape)
         codebook_mapping, codebook_indices, q_loss = self.codebook(quantized_encoded_images)
+        #print("codebook mapping shape",codebook_mapping.shape)
+        #print("codebook indices shape",codebook_indices.shape)
         quantized_codebook_mapping = self.post_quant_conv(codebook_mapping)
         decoded_images = self.decoder(quantized_codebook_mapping)
+        #print("codebook_indices shape:",codebook_indices.shape)
 
         return decoded_images, codebook_indices, q_loss
 
@@ -27,6 +33,7 @@ class VQGAN_IMPROVED(nn.Module):
         encoded_images = self.encoder(x)
         quantized_encoded_images = self.quant_conv(encoded_images)
         codebook_mapping, codebook_indices, q_loss = self.codebook(quantized_encoded_images)
+        #print("codebook indices shape",codebook_indices.shape)
         return codebook_mapping, codebook_indices, q_loss
 
     def decode(self, z):

@@ -13,13 +13,18 @@ class VQGAN(nn.Module):
         self.codebook = Codebook(args).to(device=args.device)
         self.quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
         self.post_quant_conv = nn.Conv2d(args.latent_dim, args.latent_dim, 1).to(device=args.device)
+        self.latent_dim = args.latent_dim
+        self.num_codebook_vectors = args.num_codebook_vectors
 
     def forward(self, imgs):
         encoded_images = self.encoder(imgs)
         quantized_encoded_images = self.quant_conv(encoded_images)
+        print("quantized_encode_images shape:", quantized_encoded_images.shape)
         codebook_mapping, codebook_indices, q_loss = self.codebook(quantized_encoded_images)
         quantized_codebook_mapping = self.post_quant_conv(codebook_mapping)
         decoded_images = self.decoder(quantized_codebook_mapping)
+        print("codebook_indices shape:",codebook_indices.shape)
+
 
         return decoded_images, codebook_indices, q_loss
 

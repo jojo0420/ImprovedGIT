@@ -89,9 +89,9 @@ class TrainVQGAN_IMPROVED:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="VQGAN_IMPROVED")
-    parser.add_argument('--latent-dim', type=int, default=16, help='Latent dimension n_z (default: 256)')
+    parser.add_argument('--latent-dim', type=int, default=8, help='Latent dimension n_z (default: 256)')
     parser.add_argument('--image-size', type=int, default=256, help='Image height and width (default: 256)')
-    parser.add_argument('--num-codebook-vectors', type=int, default=4096, help='Number of codebook vectors (default: 256)')
+    parser.add_argument('--num-codebook-vectors', type=int, default=8192, help='Number of codebook vectors (default: 256)')
     parser.add_argument('--beta', type=float, default=0.25, help='Commitment loss scalar (default: 0.25)')
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images (default: 3)')
     parser.add_argument('--dataset-path', type=str, default='/data', help='Path to data (default: /data)')
@@ -99,15 +99,15 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=8, help='Input batch size for training (default: 6)')
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train (default: 50)')
     parser.add_argument('--learning-rate', type=float, default=2.25e-05, help='Learning rate (default: 2.25e-05)')
-    parser.add_argument('--beta1', type=float, default=0.5, help='Adam beta param (default: 0.5)')
-    parser.add_argument('--beta2', type=float, default=0.9, help='Adam beta param (default: 0.9)')
+    parser.add_argument('--beta1', type=float, default=0.9, help='Adam beta param (default: 0.5)')
+    parser.add_argument('--beta2', type=float, default=0.99, help='Adam beta param (default: 0.9)')
     parser.add_argument('--disc-start', type=int, default=0, help='When to start the discriminator (default: 0)')
     parser.add_argument('--disc-factor', type=float, default=1., help='')
     parser.add_argument('--l2-loss-factor', type=float, default=1., help='Weighting factor for reconstruction loss.')
     parser.add_argument('--perceptual-loss-factor', type=float, default=1., help='Weighting factor for perceptual loss.')
 
     args = parser.parse_args()
-    args.dataset_path = r"/content/drive/MyDrive/alley"
+    args.dataset_path = r"/mnt/home/llu/projects/maskgit_improvement/improved_maskgit/alley"
 
     train_vqgan = TrainVQGAN_IMPROVED(args)
 

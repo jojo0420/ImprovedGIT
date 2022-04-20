@@ -6,13 +6,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import utils as vutils
-from transformer import VQGANTransformer
+from transformer_improved import VQGANTransformer_improved
 from utils import load_data, plot_images
 
 
 class TrainTransformer:
     def __init__(self, args):
-        self.model = VQGANTransformer(args).to(device=args.device)
+        self.model = VQGANTransformer_improved(args).to(device=args.device)
         self.optim = self.configure_optimizers()
 
         self.train(args)
@@ -31,9 +31,9 @@ class TrainTransformer:
                     pbar.set_postfix(Transformer_Loss=np.round(loss.cpu().detach().numpy().item(), 4))
                     pbar.update(0)
             log, sampled_imgs = self.model.log_images(imgs[0][None])
-            vutils.save_image(sampled_imgs, os.path.join("results", f"{epoch}.jpg"), nrow=4)
+            vutils.save_image(sampled_imgs, os.path.join("results_improved", f"{epoch}.jpg"), nrow=4)
             plot_images(log)
-            torch.save(self.model.state_dict(), os.path.join("checkpoints", f"transformer_epoch_{epoch}.pt"))
+            torch.save(self.model.state_dict(), os.path.join("checkpoints_improved", f"transformer_epoch_{epoch}.pt"))
 
     def configure_optimizers(self):
         decay, no_decay = set(), set()
@@ -65,14 +65,14 @@ class TrainTransformer:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="VQGAN")
-    parser.add_argument('--latent-dim', type=int, default=256, help='Latent dimension n_z.')
+    parser = argparse.ArgumentParser(description="VQGAN_IMPROVED")
+    parser.add_argument('--latent-dim', type=int, default=16, help='Latent dimension n_z.')
     parser.add_argument('--image-size', type=int, default=256, help='Image height and width.)')
-    parser.add_argument('--num-codebook-vectors', type=int, default=256, help='Number of codebook vectors.')
+    parser.add_argument('--num-codebook-vectors', type=int, default=4096, help='Number of codebook vectors.')
     parser.add_argument('--beta', type=float, default=0.25, help='Commitment loss scalar.')
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images.')
-    parser.add_argument('--dataset-path', type=str, default='/mnt/ceph/users/llu/maskgit_improvement/improved_maskgit/alley', help='Path to data.')
-    parser.add_argument('--checkpoint-path', type=str, default='/mnt/ceph/users/llu/imaskgit_results/checkpoints/vqgan_epoch_49.pt', help='Path to checkpoint.')
+    parser.add_argument('--dataset-path', type=str, default='/mnt/ceph/users/llu/maskgit_improvement/tmp_exp/improved_maskgit/alley', help='Path to data.')
+    parser.add_argument('--checkpoint-path', type=str, default='/mnt/ceph/users/llu/imaskgit_results/checkpoints_improved_4096_05beta1_09beta2/vqgan_epoch_25.pt', help='Path to checkpoint.')
     parser.add_argument('--device', type=str, default="cuda", help='Which device the training is on')
     parser.add_argument('--batch-size', type=int, default=8, help='Input batch size for training.')
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train.')
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     #parser.add_argument('--sos-token', type=int, default=0, help='Start of Sentence token.')
 
     args = parser.parse_args()
-    args.dataset_path = r"/mnt/ceph/users/llu/maskgit_improvement/improved_maskgit/alley"
-    args.checkpoint_path = r"/mnt/ceph/users/llu/imaskgit_results/checkpoints/vqgan_epoch_49.pt"
+    args.dataset_path = r"/mnt/ceph/users/llu/maskgit_improvement/tmp_exp/improved_maskgit/alley"
+    args.checkpoint_path = r"/mnt/ceph/users/llu/imaskgit_results/checkpoints_improved_4096_05beta1_09beta2/vqgan_epoch_25.pt"
 
     train_transformer = TrainTransformer(args)

@@ -281,7 +281,9 @@ class CosineSimCodebook(nn.Module):
         #embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
 
+        print("embed_ind shape",embed_ind.shape)
         quantize = F.embedding(embed_ind, self.embed)
+        #print("quantize shape",quantize.shape)
         loss = torch.mean((quantize.detach() - x) ** 2) + self.beta * torch.mean((quantize - x.detach()) ** 2)
         quantize = x + (quantize - x).detach()  # moving average instead of hard codebook remapping
 
@@ -423,16 +425,19 @@ class VectorQuantize(nn.Module):
         '''
 
         if is_multiheaded:
+            print("multi headed")
             quantize = rearrange(quantize, '(b h) n d -> b n (h d)', h = heads)
             embed_ind = rearrange(embed_ind, '(b h) n -> b n h', h = heads)
 
         quantize = self.project_out(quantize)
 
         if need_transpose:
+            print("need trans")
             quantize = rearrange(quantize, 'b n d -> b d n')
 
         if self.accept_image_fmap:
             quantize = rearrange(quantize, 'b (h w) c -> b c h w', h = height, w = width)
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h = height, w = width)
 
+        print("embed_ind remaped shape",embed_ind.shape)
         return quantize, embed_ind, loss

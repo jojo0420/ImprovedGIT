@@ -75,7 +75,7 @@ class Encoder(nn.Module):
 
 
 class BidirectionalTransformer(nn.Module):
-    def __init__(self, N=24, dim=768, codebook_size=1024):
+    def __init__(self, N=24, dim=768, codebook_size=4096):
         super(BidirectionalTransformer, self).__init__()
 
         self.tok_emb = nn.Embedding(codebook_size, dim)

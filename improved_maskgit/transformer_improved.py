@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from bidirectional_transformer import BidirectionalTransformer
-from vqgan import VQGAN
+from vqgan_improved import VQGAN_IMPROVED
 import numpy as np
+from einops import rearrange
 
 
-class VQGANTransformer(nn.Module):
+class VQGANTransformer_improved(nn.Module):
     def __init__(self, args):
         super().__init__()
 
@@ -18,7 +19,7 @@ class VQGANTransformer(nn.Module):
 
     @staticmethod
     def load_vqgan(args):
-        model = VQGAN(args)
+        model = VQGAN_IMPROVED(args)
         model.load_checkpoint(args.checkpoint_path)
         model = model.eval()
         return model
@@ -26,7 +27,9 @@ class VQGANTransformer(nn.Module):
     @torch.no_grad()
     def encode_to_z(self, x):
         quant_z, indices, _ = self.vqgan.encode(x)
+        #print("old shape indices:",indices.shape)
         indices = indices.view(quant_z.shape[0], -1)
+        #print("new shape indices:",indices.shape)
         return quant_z, indices
 
     def forward(self, x):
@@ -64,13 +67,12 @@ class VQGANTransformer(nn.Module):
 
     @torch.no_grad()
     def sample(self, condition=None, num=1, T=10, temperature=1.0, mode="cosine"):
-        print("condision.shape",condition.shape)
-        N = self.vqgan.num_codebook_vectors
-        print("N",N)
+        N = 256 #self.vqgan.num_codebook_vectors
         if condition is None:
             indices = torch.zeros((num, N), device="cuda", dtype=torch.int)
         else:
             indices = torch.hstack((condition, torch.zeros((condition.shape[0], N-condition.shape[1]), device="cuda", dtype=torch.int)))
+        #print("indices sample shape", indices.shape)
 
         gamma = self.gamma_func(mode)
 
@@ -119,8 +121,10 @@ class VQGANTransformer(nn.Module):
     @torch.no_grad()
     def log_images(self, x, mode="cosine"):
         log = dict()
+        x_vqgan, codebook_indices, q_loss = self.vqgan(x)
 
         _, z_indices = self.encode_to_z(x)
+        print("z indices shape", z_indices.shape)
 
         # create a "half" sample
         z_start_indices = z_indices[:, :z_indices.shape[1]//2]
@@ -138,11 +142,21 @@ class VQGANTransformer(nn.Module):
         log["rec"] = x_rec
         log["half_sample"] = x_sample
         log["new_sample"] = x_new
-        return log, torch.cat((x, x_rec, x_sample, x_new))
+        return log, x, x_rec, x_sample, x_vqgan
+        #return log, torch.cat((x, x_rec, x_sample, x_new))
 
     def indices_to_image(self, indices, p1=16, p2=16):
-        ix_to_vectors = self.vqgan.codebook.embedding(indices).reshape(indices.shape[0], p1, p2, self.vqgan.latent_dim)
-        ix_to_vectors = ix_to_vectors.permute(0, 3, 1, 2)
+        inddim = indices.shape[0]
+        #print("inddim",inddim)
+        #ix_to_vectors = self.vqgan.codebook.embedding(indices.reshape(inddim,p1*p2))#.reshape(indices.shape[0], p1, p2, self.vqgan.latent_dim)
+        print("indices shape:",indices.shape)
+        ix_to_vectors = F.embedding(indices, self.vqgan.codebook.codebook)
+        ix_to_vectors = self.vqgan.codebook.project_out(ix_to_vectors)
+        #print("ix to vectors shape",ix_to_vectors.shape)
+        ix_to_vectors = rearrange(ix_to_vectors, 'b (h w) c -> b c h w', h=p1, w=p2)
+        #print("ix_to_vectors.shape", ix_to_vectors.shape)
+        #ix_to_vectors = ix_to_vectors.permute(0, 3, 1, 2)
+        #print("ix_to_vectors.shape", ix_to_vectors.shape)
         image = self.vqgan.decode(ix_to_vectors)
         return image
 
@@ -205,6 +219,6 @@ class VQGANTransformer(nn.Module):
 
         return blended_image, inpainted_image
 
-
-
-
+    def load_checkpoint(self, path):
+        self.load_state_dict(torch.load(path))
+        print("Loaded Checkpoint for Transformer improved....")
