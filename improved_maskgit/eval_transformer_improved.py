@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-codebook-vectors', type=int, default=4096, help='Number of codebook vectors.')
     parser.add_argument('--beta', type=float, default=0.25, help='Commitment loss scalar.')
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images.')
-    parser.add_argument('--dataset-path', type=str, default='/content/drive/MyDrive/alley', help='Path to data.')
+    parser.add_argument('--dataset-path', type=str, default='/content/drive/MyDrive/test_data', help='Path to data.')
     parser.add_argument('--checkpoint-path', type=str, default='/content/drive/MyDrive/models_checkpoints/vqgan_improved.pt', help='Path to checkpoint.')
     parser.add_argument('--trans-path', type=str, default='/content/drive/MyDrive/models_checkpoints/transformer_improved.pt', help='Path to trans checkpoint.')
     parser.add_argument('--device', type=str, default="cuda", help='Which device the training is on')
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     parser.add_argument('--perceptual-loss-factor', type=float, default=1., help='Weighting factor for perceptual loss.')
 
     args = parser.parse_args()
-    args.dataset_path = r"/content/drive/MyDrive/alley"
+    args.dataset_path = r"/content/drive/MyDrive/test_data"
     args.checkpoint_path = r"/content/drive/MyDrive/models_checkpoints/vqgan_improved.pt"
     args.trans_path = r"/content/drive/MyDrive/models_checkpoints/transformer_improved.pt"
 
