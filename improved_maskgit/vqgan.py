@@ -19,11 +19,11 @@ class VQGAN(nn.Module):
     def forward(self, imgs):
         encoded_images = self.encoder(imgs)
         quantized_encoded_images = self.quant_conv(encoded_images)
-        print("quantized_encode_images shape:", quantized_encoded_images.shape)
+        #print("quantized_encode_images shape:", quantized_encoded_images.shape)
         codebook_mapping, codebook_indices, q_loss = self.codebook(quantized_encoded_images)
         quantized_codebook_mapping = self.post_quant_conv(codebook_mapping)
         decoded_images = self.decoder(quantized_codebook_mapping)
-        print("codebook_indices shape:",codebook_indices.shape)
+        #print("codebook_indices shape:",codebook_indices.shape)
 
 
         return decoded_images, codebook_indices, q_loss

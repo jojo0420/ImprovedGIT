@@ -230,7 +230,7 @@ class CosineSimCodebook(nn.Module):
         self.learnable_codebook = True
         learnable_codebook = True
         if learnable_codebook:
-            print('cossim')
+            #print('cossim')
             self.embed = nn.Parameter(embed)
         else:
             self.register_buffer('embed', embed)
@@ -281,7 +281,7 @@ class CosineSimCodebook(nn.Module):
         #embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
 
-        print("embed_ind shape",embed_ind.shape)
+        #print("embed_ind shape",embed_ind.shape)
         quantize = F.embedding(embed_ind, self.embed)
         #print("quantize shape",quantize.shape)
         loss = torch.mean((quantize.detach() - x) ** 2) + self.beta * torch.mean((quantize - x.detach()) ** 2)
@@ -439,5 +439,5 @@ class VectorQuantize(nn.Module):
             quantize = rearrange(quantize, 'b (h w) c -> b c h w', h = height, w = width)
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h = height, w = width)
 
-        print("embed_ind remaped shape",embed_ind.shape)
+        #print("embed_ind remaped shape",embed_ind.shape)
         return quantize, embed_ind, loss

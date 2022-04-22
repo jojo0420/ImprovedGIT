@@ -124,7 +124,7 @@ class VQGANTransformer_improved(nn.Module):
         x_vqgan, codebook_indices, q_loss = self.vqgan(x)
 
         _, z_indices = self.encode_to_z(x)
-        print("z indices shape", z_indices.shape)
+        #print("z indices shape", z_indices.shape)
 
         # create a "half" sample
         z_start_indices = z_indices[:, :z_indices.shape[1]//2]
@@ -149,7 +149,7 @@ class VQGANTransformer_improved(nn.Module):
         inddim = indices.shape[0]
         #print("inddim",inddim)
         #ix_to_vectors = self.vqgan.codebook.embedding(indices.reshape(inddim,p1*p2))#.reshape(indices.shape[0], p1, p2, self.vqgan.latent_dim)
-        print("indices shape:",indices.shape)
+        #print("indices shape:",indices.shape)
         ix_to_vectors = F.embedding(indices, self.vqgan.codebook.codebook)
         ix_to_vectors = self.vqgan.codebook.project_out(ix_to_vectors)
         #print("ix to vectors shape",ix_to_vectors.shape)
