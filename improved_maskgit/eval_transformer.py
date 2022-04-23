@@ -25,7 +25,6 @@ class EvalTransformer:
                 for i, imgs in zip(pbar, train_dataset):
                     icnt = icnt + 1
                     imgs = imgs.to(device=args.device)
-                    logits, target = self.model(imgs)
                     log, img_x, img_x_rec, img_x_sample, img_x_vqgan = self.model.log_images(imgs[0][None])
                     vutils.save_image(img_x, os.path.join("result_fig/orig", f"{icnt}.jpg"), nrow=4)
                     vutils.save_image(img_x_rec, os.path.join("result_fig/rec", f"{icnt}.jpg"), nrow=4)
@@ -43,7 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images.')
     parser.add_argument('--dataset-path', type=str, default='/content/drive/MyDrive/test_data', help='Path to data.')
     parser.add_argument('--checkpoint-path', type=str, default='/content/drive/MyDrive/models_checkpoints/vqgan.pt', help='Path to checkpoint.')
-    parser.add_argument('--trans-path', type=str, default='/content/drive/MyDrive/models_checkpoints/transformer_improved.pt', help='Path to trans checkpoint.')
+    parser.add_argument('--trans-path', type=str, default='/content/drive/MyDrive/models_checkpoints/transformer.pt', help='Path to trans checkpoint.')
     parser.add_argument('--device', type=str, default="cuda", help='Which device the training is on')
     parser.add_argument('--batch-size', type=int, default=1, help='Input batch size for training.')
     parser.add_argument('--epochs', type=int, default=1, help='Number of epochs to train.')
@@ -57,7 +56,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     args.dataset_path = r"/content/drive/MyDrive/test_data"
-    args.checkpoint_path = r"/content/drive/MyDrive/models_checkpoints/vqgan_improved.pt"
-    args.trans_path = r"/content/drive/MyDrive/models_checkpoints/transformer_improved.pt"
+    args.checkpoint_path = r"/content/drive/MyDrive/models_checkpoints/vqgan.pt"
+    args.trans_path = r"/content/drive/MyDrive/models_checkpoints/transformer.pt"
 
     eval_transformer = EvalTransformer(args)
