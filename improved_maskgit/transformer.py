@@ -64,9 +64,7 @@ class VQGANTransformer(nn.Module):
 
     @torch.no_grad()
     def sample(self, condition=None, num=1, T=10, temperature=1.0, mode="cosine"):
-        print("condision.shape",condition.shape)
         N = self.vqgan.num_codebook_vectors
-        print("N",N)
         if condition is None:
             indices = torch.zeros((num, N), device="cuda", dtype=torch.int)
         else:
