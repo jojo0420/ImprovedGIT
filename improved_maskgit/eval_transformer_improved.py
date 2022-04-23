@@ -34,9 +34,9 @@ class EvalTransformer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="VQGAN_IMPROVED")
-    parser.add_argument('--latent-dim', type=int, default=16, help='Latent dimension n_z.')
+    parser.add_argument('--latent-dim', type=int, default=8, help='Latent dimension n_z.')
     parser.add_argument('--image-size', type=int, default=256, help='Image height and width.)')
-    parser.add_argument('--num-codebook-vectors', type=int, default=4096, help='Number of codebook vectors.')
+    parser.add_argument('--num-codebook-vectors', type=int, default=8192, help='Number of codebook vectors.')
     parser.add_argument('--beta', type=float, default=0.25, help='Commitment loss scalar.')
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images.')
     parser.add_argument('--dataset-path', type=str, default='/content/drive/MyDrive/test_data', help='Path to data.')
