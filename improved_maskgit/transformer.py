@@ -136,7 +136,7 @@ class VQGANTransformer(nn.Module):
         log["rec"] = x_rec
         log["half_sample"] = x_sample
         log["new_sample"] = x_new
-        return log, torch.cat((x, x_rec, x_sample, x_new))
+        return log, x, x_rec, x_sample, x_new
 
     def indices_to_image(self, indices, p1=16, p2=16):
         ix_to_vectors = self.vqgan.codebook.embedding(indices).reshape(indices.shape[0], p1, p2, self.vqgan.latent_dim)
