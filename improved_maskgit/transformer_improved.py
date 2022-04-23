@@ -214,7 +214,7 @@ class VQGANTransformer_improved(nn.Module):
 
         mask_real = torch.where(mask == 0, mask.type(torch.float), mask_blend)
         mask_fake = torch.where(mask == 0, (1-mask).type(torch.float), mask_blend)
-        
+
         blended_image = mask_real * image + mask_fake * inpainted_image
 
         return blended_image, inpainted_image
