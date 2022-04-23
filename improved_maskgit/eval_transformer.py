@@ -25,7 +25,7 @@ class EvalTransformer:
                 for i, imgs in zip(pbar, train_dataset):
                     icnt = icnt + 1
                     imgs = imgs.to(device=args.device)
-                    log, img_x, img_x_rec, img_x_sample, img_x_vqgan = self.model.log_images(imgs[0][None])
+                    log, img_x, img_x_vqgan, img_x_sample = self.model.log_images(imgs[0][None])
                     vutils.save_image(img_x, os.path.join("result_fig/orig", f"{icnt}.jpg"), nrow=4)
                     vutils.save_image(img_x_sample, os.path.join("result_fig/half", f"{icnt}.jpg"), nrow=4)
                     vutils.save_image(img_x_vqgan, os.path.join("result_fig/vqgan", f"{icnt}.jpg"), nrow=4)
