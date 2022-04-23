@@ -27,7 +27,6 @@ class EvalTransformer:
                     imgs = imgs.to(device=args.device)
                     log, img_x, img_x_rec, img_x_sample, img_x_vqgan = self.model.log_images(imgs[0][None])
                     vutils.save_image(img_x, os.path.join("result_fig_improved/orig", f"{icnt}.jpg"), nrow=4)
-                    vutils.save_image(img_x_rec, os.path.join("result_fig_improved/rec", f"{icnt}.jpg"), nrow=4)
                     vutils.save_image(img_x_sample, os.path.join("result_fig_improved/half", f"{icnt}.jpg"), nrow=4)
                     vutils.save_image(img_x_vqgan, os.path.join("result_fig_improved/vqgan", f"{icnt}.jpg"), nrow=4)
 
