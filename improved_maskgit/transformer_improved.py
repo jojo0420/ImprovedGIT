@@ -15,7 +15,7 @@ class VQGANTransformer_improved(nn.Module):
 
         self.vqgan = self.load_vqgan(args)
 
-        self.transformer = BidirectionalTransformer()
+        self.transformer = BidirectionalTransformer(codebook_size=args.num_codebook_vectors)
 
     @staticmethod
     def load_vqgan(args):
