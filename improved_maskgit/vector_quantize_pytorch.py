@@ -204,8 +204,7 @@ class CosineSimCodebook(nn.Module):
         threshold_ema_dead_code = 2,
         use_ddp = False,
         learnable_codebook = False,
-        sample_codebook_temp = 0.,
-        beta = 1.0
+        sample_codebook_temp = 0.
     ):
         super().__init__()
         self.decay = decay
@@ -220,17 +219,13 @@ class CosineSimCodebook(nn.Module):
         self.eps = eps
         self.threshold_ema_dead_code = threshold_ema_dead_code
         self.sample_codebook_temp = sample_codebook_temp
-        self.beta = beta
 
         self.all_reduce_fn = distributed.all_reduce if use_ddp else noop
         self.register_buffer('initted', torch.Tensor([not kmeans_init]))
         self.register_buffer('cluster_size', torch.zeros(codebook_size))
 
         self.learnable_codebook = learnable_codebook
-        self.learnable_codebook = True
-        learnable_codebook = True
         if learnable_codebook:
-            #print('cossim')
             self.embed = nn.Parameter(embed)
         else:
             self.register_buffer('embed', embed)
@@ -278,16 +273,11 @@ class CosineSimCodebook(nn.Module):
 
         dist = flatten @ embed.t()
         embed_ind = gumbel_sample(dist, dim = -1, temperature = self.sample_codebook_temp)
-        #embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
+        embed_onehot = F.one_hot(embed_ind, self.codebook_size).type(dtype)
         embed_ind = embed_ind.view(*shape[:-1])
 
-        #print("embed_ind shape",embed_ind.shape)
         quantize = F.embedding(embed_ind, self.embed)
-        #print("quantize shape",quantize.shape)
-        loss = torch.mean((quantize.detach() - x) ** 2) + self.beta * torch.mean((quantize - x.detach()) ** 2)
-        quantize = x + (quantize - x).detach()  # moving average instead of hard codebook remapping
 
-        '''
         if self.training:
             bins = embed_onehot.sum(0)
             self.all_reduce_fn(bins)
@@ -306,9 +296,8 @@ class CosineSimCodebook(nn.Module):
                                            embed_normalized)
             ema_inplace(self.embed, embed_normalized, self.decay)
             self.expire_codes_(x)
-        '''
 
-        return quantize, embed_ind, loss
+        return quantize, embed_ind
 
 # main class
 
@@ -326,7 +315,7 @@ class VectorQuantize(nn.Module):
         use_cosine_sim = True,
         threshold_ema_dead_code = 0,
         channel_last = True,
-        accept_image_fmap = True,
+        accept_image_fmap = False,
         commitment_weight = 1.,
         orthogonal_reg_weight = 0.,
         orthogonal_reg_active_codes_only = False,
@@ -363,15 +352,13 @@ class VectorQuantize(nn.Module):
             threshold_ema_dead_code = threshold_ema_dead_code,
             use_ddp = sync_codebook,
             learnable_codebook = has_codebook_orthogonal_loss,
-            sample_codebook_temp = sample_codebook_temp,
-            beta = commitment_weight
+            sample_codebook_temp = sample_codebook_temp
         )
 
         self.codebook_size = codebook_size
 
         self.accept_image_fmap = accept_image_fmap
         self.channel_last = channel_last
-        self.embedding = nn.Embedding.from_pretrained(self.codebook)
 
     @property
     def codebook(self):
@@ -394,9 +381,8 @@ class VectorQuantize(nn.Module):
         if is_multiheaded:
             x = rearrange(x, 'b n (h d) -> (b h) n d', h = heads)
 
-        quantize, embed_ind, loss = self._codebook(x)
+        quantize, embed_ind = self._codebook(x)
 
-        '''
         if self.training:
             quantize = x + (quantize - x).detach()
 
@@ -422,22 +408,18 @@ class VectorQuantize(nn.Module):
 
                 orthogonal_reg_loss = orthgonal_loss_fn(codebook)
                 loss = loss + orthogonal_reg_loss * self.orthogonal_reg_weight
-        '''
 
         if is_multiheaded:
-            print("multi headed")
             quantize = rearrange(quantize, '(b h) n d -> b n (h d)', h = heads)
             embed_ind = rearrange(embed_ind, '(b h) n -> b n h', h = heads)
 
         quantize = self.project_out(quantize)
 
         if need_transpose:
-            print("need trans")
             quantize = rearrange(quantize, 'b n d -> b d n')
 
         if self.accept_image_fmap:
             quantize = rearrange(quantize, 'b (h w) c -> b c h w', h = height, w = width)
             embed_ind = rearrange(embed_ind, 'b (h w) ... -> b h w ...', h = height, w = width)
 
-        #print("embed_ind remaped shape",embed_ind.shape)
         return quantize, embed_ind, loss
