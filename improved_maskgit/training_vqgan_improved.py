@@ -78,8 +78,8 @@ class TrainVQGAN_IMPROVED:
 
                     if i % 10 == 0:
                         with torch.no_grad():
-                            both = torch.cat((imgs[:4], decoded_images.add(1).mul(0.5)[:2]))
-                            vutils.save_image(both, os.path.join("results_improved", f"{epoch}_{i}.jpg"), nrow=4)
+                            both = torch.cat((imgs[:2], decoded_images.add(1).mul(0.5)[:2]))
+                            vutils.save_image(both, os.path.join("results_improved", f"{epoch}_{i}.jpg"), nrow=2)
 
                     pbar.set_postfix(VQ_Loss=np.round(loss_vq.cpu().detach().numpy().item(), 5),
                                      GAN_Loss=np.round(loss_gan.cpu().detach().numpy().item(), 3))
