@@ -78,7 +78,7 @@ class TrainVQGAN_IMPROVED:
 
                     if i % 10 == 0:
                         with torch.no_grad():
-                            both = torch.cat((imgs[:4], decoded_images.add(1).mul(0.5)[:4]))
+                            both = torch.cat((imgs[:4], decoded_images.add(1).mul(0.5)[:2]))
                             vutils.save_image(both, os.path.join("results_improved", f"{epoch}_{i}.jpg"), nrow=4)
 
                     pbar.set_postfix(VQ_Loss=np.round(loss_vq.cpu().detach().numpy().item(), 5),
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument('--image-channels', type=int, default=3, help='Number of channels of images (default: 3)')
     parser.add_argument('--dataset-path', type=str, default='/data', help='Path to data (default: /data)')
     parser.add_argument('--device', type=str, default="cuda", help='Which device the training is on')
-    parser.add_argument('--batch-size', type=int, default=4, help='Input batch size for training (default: 6)')
+    parser.add_argument('--batch-size', type=int, default=2, help='Input batch size for training (default: 6)')
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train (default: 50)')
     parser.add_argument('--learning-rate', type=float, default=2.25e-05, help='Learning rate (default: 2.25e-05)')
     parser.add_argument('--beta1', type=float, default=0.5, help='Adam beta param (default: 0.5)')
